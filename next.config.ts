@@ -1,20 +1,10 @@
 import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
-  /* config options here */
-  experimental: {
-    agentFeedback: true,
-  },
+  experimental: { agentFeedback: true },
   cacheComponents: true,
   partialPrefetching: true,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
+  async rewrites() {
+    return [{ source: "/games/move-the-moon", destination: "/games/move-the-moon/index.html" }];
   },
 };
-
 export default nextConfig;
