@@ -6,6 +6,7 @@ export default function Icon({
   size?: number;
 }) {
   const paths: Record<string, string> = {
+    "Mission health": "M12 3v18M3 12h18M6 6l12 12M6 18L18 6",
     Wearables: "M8 2h8l1 5v10l-1 5H8l-1-5V7z M7 8h10 M7 16h10 M10 12h4",
     Wellbeing: "M12 21s-10-6-10-13c0-5 7-7 10-2 3-5 10-3 10 2 0 7-10 13-10 13z",
     "Move the Moon":

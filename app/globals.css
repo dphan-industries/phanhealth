@@ -3385,3 +3385,21 @@ body:has(.quiet-mode) .global-emergency {
 .moon-launch { margin: 24px auto; padding: 40px 20px; text-align: center; border: 1px solid #34536b; border-radius: 20px; background: radial-gradient(ellipse at center, #17364a, #050a12 70%); }
 .moon-launch img { object-fit: contain; }
 @media (max-width: 520px) { .moon-room { padding: 16px; } .moon-game { height: 680px; min-height: 560px; max-height: none; border-radius: 10px; } }
+
+.mission-health { display: grid; gap: 24px; }
+.assessment-grid, .hazard-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin-top: 20px; }
+.assessment { border: 1px solid #47738a; border-left: 4px solid #8ad4e6; padding: 20px; border-radius: 14px; background: #10212d; margin: 16px 0; }
+.assessment.urgent { border-color: #f2a96b; background: #30231d; }
+.assessment.review { border-color: #d4bc6e; background: #25291f; }
+.assessment h3, .assessment h4 { margin: 8px 0 14px; }
+.assessment li { margin-bottom: 12px; line-height: 1.6; }
+.assessment p, .mission-health p, .emergency-guide p { line-height: 1.7; }
+.assessment .secondary { margin-top: 14px; }
+.symptom-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.symptom-grid label, .check-label { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px; }
+.symptom-grid input, .check-label input { width: 22px; height: 22px; flex: 0 0 22px; }
+.mission-health fieldset, .emergency-guide fieldset { margin: 20px 0; border: 1px solid #34566b; padding: 16px; border-radius: 12px; }
+.daily-routine { border: 1px solid #34566b; padding: 16px; margin: 20px 0; border-radius: 12px; }
+.daily-routine summary { cursor: pointer; min-height: 44px; }
+.routine-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+@media(max-width:760px) { .assessment-grid,.hazard-grid,.symptom-grid,.routine-grid { grid-template-columns: 1fr; } }

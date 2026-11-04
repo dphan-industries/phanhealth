@@ -17,7 +17,11 @@ import Wellbeing from "./components/wellbeing";
 import Reminders from "./components/reminders";
 import DataTransfer from "./components/data-transfer";
 import InstallApp from "./components/install-app";
-import { orderedReadings, values, explainReading } from "../lib/insights";
+import MissionHealth from "./components/mission-health";
+import EmergencyGuide from "./components/emergency-guide";
+import MeasurementInstructions from "./components/measurement-instructions";
+import { METRICS, UNITS, assessReading } from "../lib/health";
+import { orderedReadings, values } from "../lib/insights";
 import { samples, guides } from "../lib/content";
 type View =
   | "Dashboard"
@@ -27,7 +31,8 @@ type View =
   | "Emergency assist"
   | "Wearables"
   | "Wellbeing"
-  | "Move the Moon";
+  | "Move the Moon"
+  | "Mission health";
 export default function Home() {
   const [view, setView] = useState<View>("Dashboard");
   const [historyPage, setHistoryPage] = useState(0);
@@ -47,16 +52,17 @@ export default function Home() {
     useState<Reading["source"]>("Manual entry");
   const [entryTimestamp, setEntryTimestamp] = useState("");
   const [entryDevice, setEntryDevice] = useState("");
-  const [kind, setKind] = useState("Heart rate");
+  const [kind, setKind] = useState<Reading["kind"]>("Heart rate");
   const [first, setFirst] = useState("");
   const [second, setSecond] = useState("");
   const [note, setNote] = useState("");
+  const [measurementContext, setMeasurementContext] = useState("");
   const [review, setReview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
   const [guide, setGuide] = useState<number | null>(null);
   const [date, setDate] = useState("04 NOV 2026");
-  const dirty = !!(first || second || note || extraDirty);
+  const dirty = !!(first || second || note || measurementContext || extraDirty);
   const ready = cacheReady && storageReady;
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
@@ -111,6 +117,7 @@ export default function Home() {
     setFirst("");
     setSecond("");
     setNote("");
+    setMeasurementContext("");
     setReview(false);
     setStep(0);
     setEntrySource("Manual entry");
@@ -136,10 +143,12 @@ export default function Home() {
       const record: Reading = {
         id: crypto.randomUUID(),
         kind: kind as Reading["kind"],
-        value: kind === "Heart rate" ? first : `${first} / ${second}`,
-        unit: kind === "Heart rate" ? "bpm" : "mmHg",
+        value: kind === "Blood pressure" ? `${first} / ${second}` : first,
+        unit: UNITS[kind],
         timestamp: entryTimestamp || new Date().toISOString(),
-        note,
+        note: measurementContext
+          ? `Context: ${measurementContext}\n${note}`
+          : note,
         source: entrySource,
         ...(entryDevice ? { device: entryDevice } : {}),
       };
@@ -151,6 +160,7 @@ export default function Home() {
       setFirst("");
       setSecond("");
       setNote("");
+      setMeasurementContext("");
       setReview(false);
       setViewHistory((previous) => [...previous, view]);
       setView("Health history");
@@ -178,6 +188,7 @@ export default function Home() {
       setStorageError("");
       setIncidents((v) => [incident, ...v]);
       setNote("");
+      setMeasurementContext("");
       setStep(3);
       setNotice("Simulation saved locally.");
     } catch (e) {
@@ -239,7 +250,9 @@ export default function Home() {
     setReview(true);
   }
   const today = records.filter(
-    (r) => new Date(r.timestamp).toDateString() === new Date().toDateString(),
+    (r) =>
+      new Date(r.timestamp).toDateString() === new Date().toDateString() &&
+      ["Heart rate", "Blood pressure"].includes(r.kind),
   );
   const historyRows = useMemo(
     () =>
@@ -250,7 +263,7 @@ export default function Home() {
   );
   const previousById = useMemo(() => {
     const result = new Map<string, Reading>();
-    for (const k of ["Heart rate", "Blood pressure"] as const) {
+    for (const k of METRICS) {
       const rows = orderedReadings(records, k);
       for (let i = 1; i < rows.length; i++) result.set(rows[i].id, rows[i - 1]);
     }
@@ -297,6 +310,7 @@ export default function Home() {
               "Wearables",
               "Wellbeing",
               "Move the Moon",
+              "Mission health",
             ] as const
           ).map((v, i) => (
             <button
@@ -455,6 +469,7 @@ export default function Home() {
                     "Wearables",
                     "Wellbeing",
                     "Move the Moon",
+                    "Mission health",
                   ] as const
                 ).map((destination) => (
                   <button
@@ -473,6 +488,7 @@ export default function Home() {
                             Wearables: "Bluetooth or simulated sensors",
                             Wellbeing: "Sleep, mood and body notes",
                             "Move the Moon": "Your game. A moment away.",
+                            "Mission health": "Assess, act, and follow up",
                           }[destination]
                         }
                       </small>
@@ -497,7 +513,8 @@ export default function Home() {
                       className="vital-card"
                       key={k}
                       onClick={() => {
-                        if (navigate("Measurements")) setKind(k);
+                        if (navigate("Measurements"))
+                          setKind(k as Reading["kind"]);
                       }}
                     >
                       <div className="vital-title">
@@ -605,7 +622,8 @@ export default function Home() {
                       key={k}
                       className="task"
                       onClick={() => {
-                        if (navigate("Measurements")) setKind(k);
+                        if (navigate("Measurements"))
+                          setKind(k as Reading["kind"]);
                       }}
                     >
                       <span
@@ -676,48 +694,54 @@ export default function Home() {
                           )
                         )
                           return;
-                        setKind(e.target.value);
+                        setKind(e.target.value as Reading["kind"]);
                         setFirst("");
                         setSecond("");
                         setNote("");
+                        setMeasurementContext("");
                       }}
                     >
                       <option>Heart rate</option>
                       <option>Blood pressure</option>
+                      <option>Blood glucose</option>
+                      <option>Body temperature</option>
                     </select>
                   </label>
-                  <div className="instruction">
-                    <strong>Before you begin</strong>
-                    <p>
-                      {kind === "Heart rate" ? guides[0].text : guides[1].text}
-                    </p>
-                    <p>
-                      <strong>Why it matters:</strong>{" "}
-                      {kind === "Heart rate" ? guides[0].why : guides[1].why}
-                    </p>
-                    <ol className="guide-steps">
-                      {(kind === "Heart rate"
-                        ? guides[0]
-                        : guides[1]
-                      ).steps.map((step) => (
-                        <li key={step}>{step}</li>
-                      ))}
-                    </ol>
-                    <a
-                      className="source-link"
-                      target="_blank"
-                      rel="noreferrer"
-                      href={
-                        (kind === "Heart rate" ? guides[0] : guides[1]).source
-                      }
+                  <MeasurementInstructions kind={kind} />
+                  <label>
+                    Measurement context
+                    <select
+                      value={measurementContext}
+                      onChange={(e) => setMeasurementContext(e.target.value)}
                     >
-                      Earth-based education source: American Heart Association ↗
-                    </a>
-                  </div>
+                      <option value="">
+                        Choose context (unknown if omitted)
+                      </option>
+                      {(kind === "Body temperature"
+                        ? [
+                            "Oral thermometer",
+                            "Ear thermometer",
+                            "Skin / contactless",
+                            "Other method",
+                          ]
+                        : kind === "Blood glucose"
+                          ? ["Fasting", "After meal", "Timing unknown"]
+                          : [
+                              "Resting",
+                              "After exertion",
+                              "Recovering",
+                              "Activity unknown",
+                            ]
+                      ).map((c) => (
+                        <option key={c}>{c}</option>
+                      ))}
+                    </select>
+                  </label>
                   <div className="input-row">
                     <NumberControl
-                      label={kind === "Heart rate" ? "Heart rate" : "Systolic"}
-                      unit={kind === "Heart rate" ? "bpm" : "mmHg"}
+                      label={kind === "Blood pressure" ? "Systolic" : kind}
+                      decimal={kind === "Body temperature"}
+                      unit={UNITS[kind]}
                       value={first}
                       onChange={(v) => {
                         setFirst(v);
@@ -761,7 +785,7 @@ export default function Home() {
                   <div className="review-reading">
                     {first}
                     {kind === "Blood pressure" ? ` / ${second}` : ""}
-                    <small>{kind === "Heart rate" ? "bpm" : "mmHg"}</small>
+                    <small>{UNITS[kind]}</small>
                   </div>
                   <p>
                     {kind} · {entrySource} ·{" "}
@@ -771,17 +795,23 @@ export default function Home() {
                     {entryDevice && " · " + entryDevice}
                   </p>
                   <ReadingInsight
+                    resting={measurementContext === "Resting"}
                     reading={{
                       kind: kind as Reading["kind"],
                       value:
-                        kind === "Heart rate" ? first : first + " / " + second,
+                        kind === "Blood pressure"
+                          ? first + " / " + second
+                          : first,
                     }}
                     previous={orderedReadings(
                       records,
                       kind as Reading["kind"],
                     ).at(-1)}
                   />
-                  <p>{note || "No observation added."}</p>
+                  <p>
+                    {measurementContext && `Context: ${measurementContext}. `}
+                    {note || "No observation added."}
+                  </p>
                   <div className="actions">
                     <button
                       className="secondary"
@@ -847,12 +877,7 @@ export default function Home() {
                             </td>
                             <td>
                               <details>
-                                <summary>
-                                  {
-                                    explainReading(r, previousById.get(r.id))
-                                      .title
-                                  }
-                                </summary>
+                                <summary>{assessReading(r).title}</summary>
                                 <ReadingInsight
                                   reading={r}
                                   previous={previousById.get(r.id)}
@@ -892,7 +917,7 @@ export default function Home() {
                 </p>
                 {incidents.length > 0 && (
                   <>
-                    <h3>Saved simulations</h3>
+                    <h3>Saved incidents and follow-up logs</h3>
                     {incidents.map((i) => (
                       <div className="incident" key={i.id}>
                         <time>{new Date(i.timestamp).toLocaleString()}</time>
@@ -917,6 +942,16 @@ export default function Home() {
                   : "First visit requires a connection. Wait for verified offline readiness before disconnecting."}{" "}
                 Installation is optional.
               </p>
+              <div className="assessment-grid">
+                {(["Blood glucose", "Body temperature"] as const).map(
+                  (metric) => (
+                    <details className="assessment context" key={metric}>
+                      <summary>{metric}: how, why, and next steps</summary>
+                      <MeasurementInstructions kind={metric} />
+                    </details>
+                  ),
+                )}
+              </div>
               <div className="guides-grid">
                 {guides.map((g, i) => (
                   <button
@@ -963,23 +998,24 @@ export default function Home() {
                 {
                   [
                     "Emergency assist simulation",
-                    "Fictional scenario: crew observation",
+                    "Guided emergency rehearsal",
                     "Record your observations",
                     "Incident summary",
                   ][step]
                 }
               </h2>
               <div className="alert">
-                This prototype is not medical guidance. No treatment protocol is
-                provided. Follow your actual approved mission procedures in a
-                real emergency.
+                Educational emergency rehearsal. Earth reference guidance does
+                not replace trained, approved mission procedures. This app does
+                not call for help.
               </div>
               {step === 0 ? (
                 <>
                   <p>
                     Practice navigating a disconnected mission workflow with
                     fictional observations. This simulation provides no
-                    diagnosis, medication or treatment instructions.
+                    diagnosis or medication dosing. Practice response priorities
+                    and record actions.
                   </p>
                   <button className="emergency" onClick={() => setStep(1)}>
                     Open fictional scenario →
@@ -987,13 +1023,7 @@ export default function Home() {
                 </>
               ) : step === 1 ? (
                 <>
-                  <p className="protocol">
-                    Approved mission protocol would appear here.
-                  </p>
-                  <p>
-                    Placeholder 1 of 1 · A medically reviewed mission protocol
-                    must replace this placeholder before operational use.
-                  </p>
+                  <EmergencyGuide onSummary={setNote} />
                   <button className="primary" onClick={() => setStep(2)}>
                     Continue to observation log →
                   </button>
@@ -1020,7 +1050,10 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <p>Simulation complete. No medical action was recommended.</p>
+                  <p>
+                    Rehearsal recorded. Review observations and follow-up with
+                    the crew medical officer.
+                  </p>
                   <time>
                     {incidents[0] &&
                       new Date(incidents[0].timestamp).toLocaleString()}
@@ -1041,6 +1074,15 @@ export default function Home() {
           <div hidden={view !== "Wearables"}>
             <Wearables onReview={reviewSensor} />
           </div>
+          {view === "Mission health" && (
+            <MissionHealth
+              records={records}
+              onMeasure={() => navigate("Measurements")}
+              onEmergency={() => navigate("Emergency assist")}
+              onSaved={reloadRecords}
+              onDirty={setExtraDirty}
+            />
+          )}
           {view === "Wellbeing" && <Wellbeing onDirty={setExtraDirty} />}
           {view === "Move the Moon" && <MoveTheMoon />}
           <Reminders />

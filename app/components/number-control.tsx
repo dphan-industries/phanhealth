@@ -4,7 +4,13 @@ export default function NumberControl({
   unit,
   value,
   onChange,
+  decimal = false,
+  min = 1,
+  max = 999,
 }: {
+  decimal?: boolean;
+  min?: number;
+  max?: number;
   label: string;
   unit: string;
   value: string;
@@ -13,12 +19,26 @@ export default function NumberControl({
   const id = useId();
   const dialog = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState("");
+  const upper = decimal ? 60 : max;
   function open() {
     setDraft(value);
     dialog.current?.showModal();
   }
   function adjust(amount: number) {
-    onChange(String(Math.max(1, Math.min(999, (Number(value) || 0) + amount))));
+    onChange(
+      String(
+        Number(
+          Math.max(
+            min,
+            Math.min(
+              upper,
+              (Number(value) || (decimal ? 37 : 0)) +
+                amount * (decimal ? 0.1 : 1),
+            ),
+          ).toFixed(decimal ? 1 : 0),
+        ),
+      ),
+    );
   }
   return (
     <div className="number-control">
@@ -59,10 +79,10 @@ export default function NumberControl({
         <input
           type="range"
           aria-label={`${label} slider`}
-          min="1"
-          max="999"
-          step="1"
-          value={Number(value) || 1}
+          min={min}
+          max={upper}
+          step={decimal ? 0.1 : 1}
+          value={Number(value) || min}
           onChange={(e) => onChange(e.target.value)}
         />
       </details>
@@ -75,31 +95,50 @@ export default function NumberControl({
         aria-labelledby={`${id}-title`}
       >
         <h2 id={`${id}-title`}>{label}</h2>
-        <p>{unit} · whole numbers only</p>
+        <p>
+          {unit} · {decimal ? "one decimal allowed" : "whole numbers only"}
+        </p>
         <output aria-live="polite" className="keypad-output">
           {draft || "—"}
         </output>
         <div className="keypad">
-          {["1", "2", "3", "4", "5", "6", "7", "8", "9", "Clear", "0", "⌫"].map(
-            (key) => (
-              <button
-                type="button"
-                key={key}
-                aria-label={key === "⌫" ? "Backspace" : key}
-                onClick={() =>
-                  setDraft((old) =>
-                    key === "Clear"
-                      ? ""
-                      : key === "⌫"
-                        ? old.slice(0, -1)
-                        : (old + key).slice(0, 3),
-                  )
-                }
-              >
-                {key}
-              </button>
-            ),
-          )}
+          {[
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "Clear",
+            "0",
+            "⌫",
+            ...(decimal ? ["."] : []),
+          ].map((key) => (
+            <button
+              type="button"
+              key={key}
+              aria-label={key === "⌫" ? "Backspace" : key}
+              onClick={() =>
+                setDraft((old) =>
+                  key === "Clear"
+                    ? ""
+                    : key === "⌫"
+                      ? old.slice(0, -1)
+                      : key === "." && old.includes(".")
+                        ? old
+                        : (old + key).slice(
+                            0,
+                            decimal ? 4 : String(max).length,
+                          ),
+                )
+              }
+            >
+              {key}
+            </button>
+          ))}
         </div>
         <div className="actions">
           <button

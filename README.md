@@ -2,6 +2,8 @@
 
 A space-themed, offline-first health journal and recreation prototype built with Next.js and React. The fictional Asteria mission console brings together manual readings, trends, wellbeing notes, a guide library, device connections, and David’s **Move the Moon** game.
 
+**Challenge expansion:** Mission health now adds educational assessment and next steps, mission-environment context, action logs, glucose and temperature collection, a guided emergency rehearsal, and an expanded daily routine/body-region view. See [the full challenge alignment audit](docs/CHALLENGE_ALIGNMENT.md) and screenshots 21–24 below.
+
 **Prototype only:** this app does not diagnose conditions, establish that a reading is safe, provide treatment protocols, or monitor emergencies. Use fictional data for demonstrations. Earth Room has been removed from the interface; Move the Moon is the current recreation screen.
 
 ![Crew Health dashboard](docs/screenshots/01-dashboard.jpg)
@@ -55,7 +57,7 @@ Press **Ctrl+C** in the terminal to stop either preview. To start again, rerun t
 | `npm run build` | Compile and type-check the production application. |
 | `npm run start -- --port 3000` | Serve an existing production build. |
 | `npm run lint` | Run ESLint. |
-| `npm test` | Run the 18 current automated tests. |
+| `npm test` | Run the 24 current automated tests. |
 | `npx tsc --noEmit` | Run TypeScript checks without emitting files. |
 
 If port 3000 is occupied, stop the other server or choose another port. Browser data belongs to an origin: `localhost`, `127.0.0.1`, and different ports have separate storage and separate offline preparation. On Windows, if PowerShell blocks `npm.ps1`, use `npm.cmd` for the same commands or run them in Command Prompt.
@@ -90,7 +92,9 @@ Tap a number field or its keypad button to open this dialog. Large digit buttons
 
 This screen shows the value and unit, whether it was entered manually or received from a sensor, the observation, and an explanation of its comparison with an earlier reading or fictional reference. **Edit reading** returns to the form; **Save to this device** commits the record locally. Manual-entry timestamps are assigned on save; sensor entries retain their receipt timestamp.
 
-The explanation uses arbitrary exhibition change rules: an absolute change of **15 bpm** for heart rate or **20 mmHg** in either blood-pressure value triggers an illustrative flag. **These are not clinical thresholds.** No flag does not mean a reading is healthy or safe, and a flag is not a diagnosis.
+The expandable prior-entry comparison retains the earlier arbitrary exhibition change rules: an absolute change of **15 bpm** for heart rate or **20 mmHg** in either blood-pressure value triggers an illustrative flag. **These are not clinical thresholds.** No flag does not mean a reading is healthy or safe, and a flag is not a diagnosis.
+
+The primary review and history summaries now show cited educational reference guidance and next steps; the old exhibition comparison is secondary and expandable.
 
 ### 5. Blood-pressure entry — two separate values
 
@@ -110,7 +114,7 @@ The report controls export local readings, simulation incidents, and wellbeing e
 
 ![The three bundled guides](docs/screenshots/07-guide-library.jpg)
 
-The library has three guides available after the app is cached:
+The library has three core guides, plus expandable glucose and temperature instructions, available after the app is cached:
 
 - **Taking a heart rate reading:** what bpm means, measurement context, and recording a displayed value.
 - **Recording blood pressure:** systolic/diastolic values, mmHg, and using the approved measurement device.
@@ -144,13 +148,13 @@ Choose sleep duration in half-hour increments, select a mood from **Very low** t
 
 ![Emergency simulation warning screen](docs/screenshots/11-emergency-warning.jpg)
 
-The emergency entry switches to an amber training layout and clearly states that the prototype supplies no diagnosis, medication, or treatment instructions. **Open fictional scenario** enters a placeholder where an approved, medically reviewed mission protocol would need to be supplied before operational use. This button does not contact emergency services, mission control, or a clinician.
+The emergency entry switches to an amber training layout. **Open fictional scenario** now opens the guided emergency rehearsal shown in screenshot 22, replacing the earlier placeholder. It provides educational response priorities and no diagnosis or medication dosing. No emergency call or medical message is sent.
 
 ### 12. Emergency observations — document a fictional scenario
 
 ![Fictional emergency observation entry](docs/screenshots/12-emergency-observations.jpg)
 
-After the protocol placeholder, **Continue to observation log** opens a free-text area for fictional observations. **Save simulation & view summary** records the incident and its timestamp on this device. It does not evaluate the text, recommend care, or send an alert. Unsaved observations remain a draft until confirmed.
+After the guided rehearsal, **Continue to observation log** opens a free-text area for fictional observations. **Save simulation & view summary** records the incident and its timestamp on this device. It does not evaluate the text, recommend care, or send an alert. Unsaved observations remain a draft until confirmed.
 
 ### 13. Emergency summary — inspect the saved incident
 
@@ -210,6 +214,34 @@ Drag around Earth to move the Moon and intercept incoming asteroids. The HUD dis
 
 The pause overlay stops the run and exposes separate **MUSIC** and **SFX** controls. **RESUME** continues; **QUIT RUN** opens the original quit flow, which can ask before discarding unbanked progress. Switching away from the game’s document pauses active play, while leaving Crew Health’s recreation screen destroys the iframe and ends that session. Closing or restarting is different from pausing.
 
+## Expanded challenge workflows
+
+### 21. Mission Health — assess, act, and follow up
+
+![Mission Health assessment and five-hazard monitoring plan](docs/screenshots/21-mission-health.jpg)
+
+Choose the mission environment, report urgent symptoms, and inspect the latest personal indicators. Fictional starter samples are excluded and sensor simulations are excluded unless explicitly enabled for training. Missing readings remain unknown; older readings show their age. Cards combine source/timestamp, previous personal value, an educational reference category, why it matters, and concrete next steps. Urgent symptoms override numbers. Follow-up actions and outcomes save in the incident/action journal. A medical handoff text file can be downloaded for manual transfer; the app does not send it.
+
+Spacecraft, station, rover, Moon/Mars base and Earth-training modes show different operational cautions. The five hazard cards explain what can be tracked and what actions belong to an approved mission plan. Source links identify NASA, AHA, CDC and MedlinePlus references; these are Earth references and not flight validation.
+
+### 22. Guided emergency rehearsal — response branches and checklist
+
+![Emergency responsiveness, breathing and response checklist](docs/screenshots/22-emergency-guidance.jpg)
+
+The previous placeholder is replaced with scenarios for chest pain/collapse, low glucose/altered awareness, fever/illness and habitat alarms. Responsiveness and breathing selections expose urgent response priorities. The rehearsal checklist covers crew/medical-officer alerting, scene safety, trained CPR/AED response, communications and time/action documentation. Selections populate the editable observation log before saving. Earth CPR positioning is not presented as a microgravity procedure. No completed checkbox proves treatment occurred.
+
+### 23. Daily routine and informative body regions
+
+![Expanded nutrition, exercise, exposure and body-region journal](docs/screenshots/23-daily-routine.jpg)
+
+Wellbeing now also records fluids, meals, aerobic and resistance exercise, a dosimeter-transcribed dose for the stated 24-hour period, and habitat/EVA/illness notes. Blank fields mean unknown. Numeric bounds are format limits, not recommended targets. Follow individualized mission nutrition/exercise plans. Region selection explains function and monitoring, with relevant recorded readings where available. Seven-day participation counts logging days; repeated low mood prompts a crew medical check-in, not a diagnosis. Routine data is included in JSON report transfer.
+
+### 24. Glucose and temperature — complete measurement workflows
+
+![Temperature entry and sourced review](docs/screenshots/24-temperature-review.jpg)
+
+Measurements now supports **Blood glucose (mg/dL)** and **Body temperature (°C)** in addition to HR/BP. Temperature has a decimal touch-keypad button and 0.1°C stepper. A context selector captures meal timing, temperature site, or activity as part of the saved note. New readings support review, explicit save, history, charts, export/import and offline persistence. Glucose meter, thermometer and contamination-control instructions explain how/why to measure. No CGM, thermometer or lab integration is implied.
+
 ## How offline mode works
 
 The first connected production visit installs `public/sw.js`. It caches the application HTML, referenced Next.js scripts/styles, manifest, app icons, and every required exported game asset. It writes a resource inventory after successful preload. `lib/offline.ts` checks that inventory on load, service-worker changes, and tab resume. The app also checks local database availability before showing **OFFLINE READY**.
@@ -227,7 +259,7 @@ The first connected production visit installs `public/sw.js`. It caches the appl
 
 Browser storage can be cleared, denied, run out of space, or be evicted. Installation does not remove those limits. Export important records yourself; game progress is not included in health reports. Data does not follow you automatically to another browser, port, device, or installed environment.
 
-The current cache version is **`crew-health-v13`**. When shipping changed files, bump the worker cache version, rebuild, reconnect, and reload so the new version preloads. A reload may first show the previous cached version while the worker updates. A disconnected device cannot receive a new release.
+The current cache version is **`crew-health-v16`**. When shipping changed files, bump the worker cache version, rebuild, reconnect, and reload so the new version preloads. A reload may first show the previous cached version while the worker updates. A disconnected device cannot receive a new release.
 
 ## Project structure
 
@@ -238,6 +270,7 @@ The current cache version is **`crew-health-v13`**. When shipping changed files,
 | `app/components/` | Number controls, trends, wearables, wellbeing, reminders, installation, transfer, and game wrapper. |
 | `lib/storage.ts` | IndexedDB schema 2: readings, incidents, wellness, preferences, and resources. Version-1 data migrates in place. |
 | `lib/insights.ts` | Transparent, nonclinical exhibition comparison rules. |
+| `lib/health.ts` | Indicator instructions, source-linked reference assessments, environment profiles and hazard monitoring guidance. |
 | `lib/bluetooth.ts` | Standard heart-rate and blood-pressure packet parsing. |
 | `lib/transfer.ts` | JSON report validation and atomic import/merge. |
 | `lib/content.ts` | Fictional references and guide content. |
@@ -245,7 +278,7 @@ The current cache version is **`crew-health-v13`**. When shipping changed files,
 | `public/manifest.webmanifest`, `public/icon-*.png` | Standalone installation metadata and app icons. |
 | `public/games/move-the-moon/` | Ready-to-run exported web game and assets. |
 | `vendor/move-the-moon/` | Copied Expo source and web adaptations, separate from the original Desktop project. |
-| `docs/screenshots/` | The 20 real application screenshots used in this README. |
+| `docs/screenshots/` | The 24 real application screenshots used in this README. |
 | `tests/` | Node test runner checks for storage, sensors, transfer, flags, and offline behaviour. |
 
 Core views switch locally without cloud APIs or server actions. Health records use IndexedDB; game progress uses the game’s web AsyncStorage/localStorage. Neither is a mission-grade encrypted record system. Legacy Earth Room source and packages remain dormant for possible later work, but its maps, nature scenes, breathing screen, and constellation game are not current app features.
@@ -254,9 +287,14 @@ For rebuilding the Expo game, web adaptations, and offline asset inventory detai
 
 ## Verification and remaining limits
 
-The current 18 automated tests cover input formats, database persistence and write failures, schema migration, report validation/merge, BLE packet parsing, illustrative flags, cached navigation, separate cached game navigation, and incomplete-cache readiness. Build and lint have also passed. Browser checks cover manual entry/review/save, demo sensor labels, wellbeing saves, guide expansion, emergency simulation, game launch/shop/gameplay/pause, and the no-selection drag fix. Screenshots above were captured from a separate local production preview using fictional data.
+See [CHALLENGE_ALIGNMENT.md](docs/CHALLENGE_ALIGNMENT.md) for the current full-brief audit and source register. Older screenshots 1–20 illustrate earlier screens; 21–24 show the expanded workflows.
 
-A server-stopped check confirmed that the cached application and game reopened without the local server. That does not substitute for testing physical airplane mode, storage exhaustion, every target browser, or real phone installation. Physical BLE hardware, Samsung Watch 9, native watch SDK integrations, full screen-reader compliance, and flight conditions remain unverified. No clinical interpretation, worldwide live camera service, automatic cloud synchronization, or real emergency response is implemented.
+
+The current 24 automated tests cover input formats, database persistence and write failures, schema migration, report validation/merge, BLE packet parsing, illustrative flags, cached navigation, separate cached game navigation, and incomplete-cache readiness. Build and lint have also passed. Browser checks additionally verified decimal temperature entry, glucose saving and trends, source-linked assessment, persisted Mars environment, emergency checklist-to-notes transfer, saved follow-ups, extended routine records, and complete medical handoff downloads. A new temperature was saved and retained after refresh with the preview server stopped. The updated Mission Health layout was checked at 390px with no page overflow.
+
+Browser checks cover manual entry/review/save, demo sensor labels, wellbeing saves, guide expansion, emergency simulation, game launch/shop/gameplay/pause, and the no-selection drag fix. Screenshots above were captured from a separate local production preview using fictional data.
+
+A server-stopped check confirmed that the cached application and game reopened without the local server. That does not substitute for testing physical airplane mode, storage exhaustion, every target browser, or real phone installation. Physical BLE hardware, Samsung Watch 9, native watch SDK integrations, full screen-reader compliance, and flight conditions remain unverified. Cited educational assessment and response guidance are implemented; validated clinical diagnosis, flight-approved treatment, worldwide live cameras, automatic cloud synchronization and real emergency dispatch are not.
 
 ### Repeatable offline check
 
