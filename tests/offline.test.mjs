@@ -32,7 +32,7 @@ function worker() {
     },
     caches: {
       open: async () => cache,
-      keys: async () => ["crew-health-v13"],
+      keys: async () => ["crew-health-v16"],
       delete: async () => true,
     },
     self: {

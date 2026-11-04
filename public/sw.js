@@ -1,4 +1,4 @@
-const CACHE = "crew-health-v13";
+const CACHE = "crew-health-v16";
 const BASE = [
   "/",
   "/manifest.webmanifest",
@@ -87,7 +87,7 @@ const BASE = [
   "/games/move-the-moon/index.html",
   "/games/move-the-moon/metadata.json",
   "/games/move-the-moon/preview.png",
-  "/games/move-the-moon/_expo/static/js/web/entry-181b0170ca2df73fe72af0c8b462aacd.js"
+  "/games/move-the-moon/_expo/static/js/web/entry-181b0170ca2df73fe72af0c8b462aacd.js",
 ];
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -151,7 +151,8 @@ self.addEventListener("fetch", (event) => {
         .then(
           async (cache) =>
             (await cache.match(
-              (url.pathname === "/games/move-the-moon" || url.pathname.startsWith("/games/move-the-moon/"))
+              url.pathname === "/games/move-the-moon" ||
+                url.pathname.startsWith("/games/move-the-moon/")
                 ? "/games/move-the-moon/index.html"
                 : "/",
             )) || fetch(event.request),

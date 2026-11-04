@@ -1,5 +1,6 @@
 import type { Reading, Incident, Wellness } from "./storage.ts";
-import { validateReading, openDatabase } from "./storage.ts";
+import { UNITS, METRICS } from "./health.ts";
+import { validateReading, validateRoutine, openDatabase } from "./storage.ts";
 export type Transfer = {
   schema: 1;
   readings: Reading[];
@@ -35,18 +36,18 @@ export function parseTransfer(raw: string): Transfer {
   for (const r of data.readings) {
     if (
       !base(r) ||
-      !["Heart rate", "Blood pressure"].includes(r.kind) ||
+      !METRICS.includes(r.kind) ||
       !text(r.value, 20) ||
       !text(r.note) ||
       !["Manual entry", "Bluetooth sensor", "Simulated sensor"].includes(
         r.source,
       ) ||
-      r.unit !== (r.kind === "Heart rate" ? "bpm" : "mmHg")
+      r.unit !== UNITS[r.kind as Reading["kind"]]
     )
       throw new Error("Invalid reading in report.");
     const parts = r.value.split("/").map((p: string) => p.trim());
     if (
-      parts.length !== (r.kind === "Heart rate" ? 1 : 2) ||
+      parts.length !== (r.kind === "Blood pressure" ? 2 : 1) ||
       validateReading(r.kind, parts[0], parts[1])
     )
       throw new Error("Invalid numeric reading in report.");
@@ -67,6 +68,9 @@ export function parseTransfer(raw: string): Transfer {
       !text(r.note)
     )
       throw new Error("Invalid wellbeing entry in report.");
+  for (const r of data.wellness)
+    if (validateRoutine(r.routine))
+      throw new Error("Invalid routine entry in report.");
   if (
     data.readings.length + data.incidents.length + data.wellness.length >
     10000

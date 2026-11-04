@@ -1,6 +1,6 @@
 export type Reading = {
   id: string;
-  kind: "Heart rate" | "Blood pressure";
+  kind: "Heart rate" | "Blood pressure" | "Blood glucose" | "Body temperature";
   value: string;
   unit: string;
   timestamp: string;
@@ -14,6 +14,19 @@ export function validateReading(
   first: string,
   second: string,
 ): string {
+  if (
+    ![
+      "Heart rate",
+      "Blood pressure",
+      "Blood glucose",
+      "Body temperature",
+    ].includes(kind)
+  )
+    return "Unknown measurement type.";
+  if (kind === "Body temperature")
+    return /^\d{1,2}(\.\d)?$/.test(first) && +first >= 1 && +first <= 60
+      ? ""
+      : "Enter temperature in °C from 1–60 with at most one decimal. This is a format limit, not a safe range.";
   if (
     !/^\d+$/.test(first) ||
     (kind === "Blood pressure" && !/^\d+$/.test(second))
@@ -97,8 +110,44 @@ export type Wellness = {
   mood: string;
   bodyArea: string;
   note: string;
+  routine?: {
+    waterMl: string;
+    meals: string;
+    aerobicMinutes: string;
+    resistanceMinutes: string;
+    radiationUsv: string;
+    environmentNotes: string;
+  };
 };
 export type Preference = { id: string; value: string };
+export function validateRoutine(input: unknown): string {
+  if (input === undefined) return "";
+  if (!input || typeof input !== "object" || Array.isArray(input))
+    return "Invalid routine entry.";
+  const r = input as Record<string, unknown>;
+  const limits = {
+    waterMl: 50000,
+    meals: 24,
+    aerobicMinutes: 1440,
+    resistanceMinutes: 1440,
+    radiationUsv: 1000000,
+  };
+  for (const [key, max] of Object.entries(limits)) {
+    const value = r[key];
+    if (
+      typeof value !== "string" ||
+      (value !== "" && (!/^\d+$/.test(value) || Number(value) > max))
+    )
+      return "Check routine values and units. These format limits are not health targets.";
+  }
+  if (
+    Number(r.aerobicMinutes) + Number(r.resistanceMinutes) > 1440 ||
+    typeof r.environmentNotes !== "string" ||
+    r.environmentNotes.length > 10000
+  )
+    return "Invalid routine duration or notes.";
+  return "";
+}
 export type LocalResource = {
   id: string;
   name: string;

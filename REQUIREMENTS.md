@@ -1,3 +1,5 @@
+> Expanded challenge implementation: see [docs/CHALLENGE_ALIGNMENT.md](docs/CHALLENGE_ALIGNMENT.md) for the current audit. The protocol placeholder and HR/BP-only scope described in this historical log have now been superseded.
+
 > Current scope (2026-11-04): Earth Room and its map, nature, breathing, and constellation screens are removed from the interface at David’s request. Move the Moon replaces that screen. Earlier Earth Room entries below describe archived work, not currently available features. See docs/MOVE_THE_MOON.md.
 
 # Crew Health Companion — full requirement audit

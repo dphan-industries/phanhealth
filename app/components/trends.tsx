@@ -1,23 +1,50 @@
+import { assessReading, METRICS, UNITS } from "../../lib/health";
 import { useState, useEffect } from "react";
 import type { Reading } from "../../lib/storage";
 import { explainReading, orderedReadings, values } from "../../lib/insights";
 export function ReadingInsight({
   reading,
   previous,
+  resting = false,
 }: {
   reading: Pick<Reading, "kind" | "value">;
   previous?: Reading;
+  resting?: boolean;
 }) {
-  const result = explainReading(reading, previous);
+  const comparison = explainReading(reading, previous);
+  const assessment = assessReading(reading, resting);
   return (
-    <div className={`reading-insight ${result.flagged ? "demo-flag" : ""}`}>
-      <strong>
-        {result.flagged ? "◇" : "✓"} {result.title}
-      </strong>
-      <p>{result.explanation}</p>
+    <div className="reading-insight">
+      <div className={`assessment ${assessment.level}`}>
+        <strong>
+          {assessment.level === "urgent"
+            ? "! "
+            : assessment.level === "review"
+              ? "△ "
+              : "○ "}
+          {assessment.title}
+        </strong>
+        <p>{assessment.why}</p>
+        <ol>
+          {assessment.actions.map((action) => (
+            <li key={action}>{action}</li>
+          ))}
+        </ol>
+        <a href={assessment.source} target="_blank" rel="noreferrer">
+          Earth reference source ↗
+        </a>
+        <p>
+          Not a diagnosis or flight-approved protocol. Symptoms take priority.
+        </p>
+      </div>
+      <details>
+        <summary>Compare with prior entry / exhibition reference</summary>
+        <strong>{comparison.title}</strong>
+        <p>{comparison.explanation}</p>
+      </details>
       <small>
-        Prototype explanation · no medical assessment. Rest, activity, device
-        quality and mission context are not evaluated.
+        Educational reference only. Individual medical plans, measurement
+        quality and full mission context are not evaluated.
       </small>
     </div>
   );
@@ -56,8 +83,9 @@ export default function Trends({ records }: { records: Reading[] }) {
             value={kind}
             onChange={(e) => setKind(e.target.value as Reading["kind"])}
           >
-            <option>Heart rate</option>
-            <option>Blood pressure</option>
+            {METRICS.map((m) => (
+              <option key={m}>{m}</option>
+            ))}
           </select>
         </label>
         <label>
@@ -85,7 +113,7 @@ export default function Trends({ records }: { records: Reading[] }) {
                 </text>
               </g>
             ))}
-            {(kind === "Heart rate" ? [0] : [0, 1]).map((series) => (
+            {(kind === "Blood pressure" ? [0, 1] : [0]).map((series) => (
               <g key={series}>
                 <polyline
                   points={rows
@@ -119,9 +147,9 @@ export default function Trends({ records }: { records: Reading[] }) {
             </text>
           </svg>
           <p>
-            {kind === "Heart rate"
-              ? "Heart rate · bpm"
-              : "Cyan: systolic · Purple: diastolic · mmHg"}{" "}
+            {kind === "Blood pressure"
+              ? "Cyan: systolic · Purple: diastolic · mmHg"
+              : `${kind} · ${UNITS[kind]}`}{" "}
             · Samples and sensor simulations retain their source labels. Points
             are spaced by record order, not elapsed time.
           </p>

@@ -1,4 +1,5 @@
 import type { Reading } from "./storage";
+import { UNITS } from "./health.ts";
 export function values(reading: Pick<Reading, "value">): number[] {
   return reading.value.split("/").map((v) => Number(v.trim()));
 }
@@ -8,6 +9,20 @@ export function explainReading(
   previous?: Reading,
 ) {
   const current = values(reading);
+  if (reading.kind === "Blood glucose" || reading.kind === "Body temperature") {
+    const differences = previous
+      ? current.map((v, i) => v - values(previous)[i])
+      : [];
+    return {
+      flagged: false,
+      baseline: previous ? "previous recorded reading" : "no prior reading",
+      differences,
+      title: "Recorded change — context required",
+      explanation: previous
+        ? `Change from ${previous.value} to ${reading.value} ${UNITS[reading.kind]}. Compare like-for-like methods and conditions.`
+        : "No prior personal reading. See the educational assessment below; no fictional baseline is substituted.",
+    };
+  }
   const base = previous
     ? values(previous)
     : reading.kind === "Heart rate"
